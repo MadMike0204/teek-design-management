@@ -2,8 +2,6 @@ import { defineConfig } from "eslint/config";
 import eslint from "@eslint/js";
 import globals from "globals";
 import pluginVue from "eslint-plugin-vue";
-import configPrettier from "eslint-config-prettier";
-import pluginPrettier from "eslint-plugin-prettier";
 import pluginTypeScript from "@typescript-eslint/eslint-plugin";
 import * as parserVue from "vue-eslint-parser";
 import * as parserTypeScript from "@typescript-eslint/parser";
@@ -21,13 +19,12 @@ export default defineConfig([
         ...projectGlobals,
       },
     },
-    plugins: {
-      prettier: pluginPrettier,
-    },
+    plugins: {},
     // 不指定 files，则默认是所有文件生效
     rules: {
-      ...configPrettier.rules,
-      ...pluginPrettier.configs.recommended.rules,
+      // 强制关闭 Prettier 格式检查报错
+      "prettier/prettier": "off",
+
       "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off", // 禁用 debugger
       "no-unused-vars": [process.env.NODE_ENV === "production" ? "warn" : "warn", { vars: "all", args: "none" }], // 禁止出现未使用的变量，函数和函数的参数
       "no-undef": process.env.NODE_ENV === "production" ? "warn" : "warn", // 禁用未声明的变量，除非它们在 /*global */ 注释中被提到

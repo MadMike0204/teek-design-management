@@ -77,4 +77,14 @@ export const dynamicRoutes: RouterConfigRaw[] = [
       tagProps: { type: "success" },
     },
   },
+  {
+    path: "/test",
+    name: "Test",
+    component: "/test/index",
+    meta: {
+      title: "Test页面",
+      icon: "CoffeeCup",
+      isKeepAlive: true,
+    },
+  },
 ];
