@@ -21,7 +21,7 @@ const ns = useNamespace("login-form");
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
-const switchLoginMode = inject("switchLoginMode") as (mode: string) => void;
+
 
 const loginRules = {
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
@@ -42,17 +42,9 @@ const loginRules = {
   ],
 };
 
-const operates = [
-  { title: "手机登录", mode: "phone" },
-  { title: "注册登录", mode: "register" },
-];
 
-const thirdParty = [
-  { title: "微信登录", icon: "login-wechat" },
-  { title: "QQ登录", icon: "login-qq" },
-  { title: "支付宝登录", icon: "login-alipay" },
-  { title: "微博登录", icon: "login-weibo" },
-];
+
+
 
 const loginFormRef = useTemplateRef<FormInstance>("loginFormRef");
 
@@ -61,9 +53,7 @@ const loading = ref(false);
 const loginForm = reactive<LoginForm>({ username: "", password: "", verifyCode: "" });
 const checked = ref(false);
 
-const handleForgetPwd = () => {
-  switchLoginMode("forget");
-};
+
 
 const login = () => {
   loginFormRef.value?.validate(async valid => {
@@ -156,7 +146,6 @@ const resetForm = () => {
     <el-form-item>
       <div :class="ns.e('item')" class="flx-align-center-between">
         <el-checkbox v-model="checked">记住密码</el-checkbox>
-        <el-button link type="primary" @click="handleForgetPwd">忘记密码?</el-button>
       </div>
     </el-form-item>
 
@@ -169,22 +158,9 @@ const resetForm = () => {
       </div>
     </el-form-item>
 
-    <el-form-item>
-      <div :class="ns.e('item')" class="flx-align-center-between">
-        <el-button v-for="(item, index) in operates" :key="index" @click="switchLoginMode(item.mode)" size="default">
-          {{ item.title }}
-        </el-button>
-      </div>
-    </el-form-item>
+    
 
-    <el-form-item>
-      <el-divider>第三方登录</el-divider>
-      <div :class="ns.e('third-item')">
-        <span v-for="(item, index) in thirdParty" :key="index" :title="item.title">
-          <Icon :icon="item.icon" :size="20" />
-        </span>
-      </div>
-    </el-form-item>
+
   </el-form>
 </template>
 

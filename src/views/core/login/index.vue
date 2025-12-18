@@ -1,8 +1,10 @@
 <script setup lang="ts" name="Login">
 import type { Component } from "vue";
-import { ref, provide } from "vue";
+import { ref, provide, onMounted } from "vue";
+import { useSettingStore } from "@/pinia/stores/core/setting";
+import { GlobalThemeEnum } from "@/common/enums";
 import { serviceConfig } from "@/common/config";
-import { SwitchDark } from "@/components";
+
 import { useNamespace } from "@/composables";
 import LoginForm from "./loginForm.vue";
 import Phone from "./components/phone.vue";
@@ -10,6 +12,12 @@ import Register from "./components/register.vue";
 import Forget from "./components/forget.vue";
 
 const ns = useNamespace("login");
+const settingStore = useSettingStore();
+
+// 设置登录页面默认使用浅色模式
+onMounted(() => {
+  settingStore.theme.globalThemeMode = GlobalThemeEnum.Light;
+});
 
 const formComponents: Record<string, Component> = {
   login: LoginForm,
@@ -29,7 +37,6 @@ provide("switchLoginMode", switchLoginMode);
 
 <template>
   <div :class="ns.b()">
-    <SwitchDark :class="ns.e('dark')" />
     <div :class="ns.e('wrapper')">
       <div :class="ns.e('left')">
         <img src="@/common/assets/images/login/login_left.png" alt="login" />
@@ -37,7 +44,7 @@ provide("switchLoginMode", switchLoginMode);
 
       <div :class="ns.e('right')">
         <div :class="ns.e('right__header')" class="flx-center">
-          <img :src="serviceConfig.logo.source" alt="" />
+          <img v-if="serviceConfig.logo.enable" :src="serviceConfig.logo.source" alt="" />
           <h2 class="title">{{ serviceConfig.layout.name }}</h2>
         </div>
 
