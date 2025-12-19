@@ -1,4 +1,5 @@
 import type { LoginParams } from "@/common/api/user";
+import { UserService } from "@/common/api/user";
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import { useRouteFn } from "@/composables";
@@ -46,19 +47,16 @@ export const useUserStore = defineStore(
     const lockPassword = ref("");
 
     const login = async (loginParams: LoginParams) => {
-      // 模拟调用登录接口拿到 token
-      // return await UserService.login(loginParams).then(res => {
-      //   accessToken.value = res.data.accessToken;
-      //   refreshToken.value = res.data.refreshToken;
-      //   return res.data;
-      // });
-
-      console.log(loginParams);
-
-      const accessToken = "admin-token";
-      const refreshToken = "admin-refresh-token";
-      setToken(accessToken, refreshToken);
-      return { accessToken, refreshToken };
+      // 调用管理员登录接口
+      return await UserService.loginAdmin(loginParams).then(res => {
+        const adminToken = res.data;
+        // 存储到localStorage
+        localStorage.setItem("adminToken", adminToken);
+        // 更新状态管理
+        accessToken.value = adminToken;
+        refreshToken.value = adminToken;
+        return { accessToken: adminToken, refreshToken: adminToken };
+      });
     };
 
     const getUserInfo = async () => {

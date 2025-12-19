@@ -1,11 +1,10 @@
 <script setup lang="ts" name="LoginForm">
 import type { FormInstance } from "element-plus";
-import { ref, reactive, inject, useTemplateRef } from "vue";
+import { ref, reactive, useTemplateRef } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElNotification } from "element-plus";
 import { User, Lock, WarnTriangleFilled, CircleClose, UserFilled } from "@element-plus/icons-vue";
 import { serviceConfig, HOME_URL } from "@/common/config";
-import { getTimeState } from "@/common/utils";
 import { ImageVerifyCode } from "@/components";
 import { useNamespace } from "@/composables";
 import { useUserStore } from "@/pinia";
@@ -21,7 +20,6 @@ const ns = useNamespace("login-form");
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
-
 
 const loginRules = {
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
@@ -42,10 +40,6 @@ const loginRules = {
   ],
 };
 
-
-
-
-
 const loginFormRef = useTemplateRef<FormInstance>("loginFormRef");
 
 const imgCode = ref("");
@@ -53,24 +47,13 @@ const loading = ref(false);
 const loginForm = reactive<LoginForm>({ username: "", password: "", verifyCode: "" });
 const checked = ref(false);
 
-
-
 const login = () => {
   loginFormRef.value?.validate(async valid => {
     if (!valid) return;
     loading.value = true;
     try {
       // 执行登录
-      const result = await userStore.login({ ...loginForm });
-      if (!result) {
-        ElNotification({
-          title: getTimeState(),
-          message: "登录失败，用户名或密码错误",
-          type: "success",
-          duration: 3000,
-        });
-        return;
-      }
+      await userStore.login({ ...loginForm });
 
       // 跳转到首页或者 URL 携带的 redirect 页（优先级高）
       let path = HOME_URL;
@@ -79,13 +62,19 @@ const login = () => {
       if (query.redirect) path = query.redirect as string;
 
       const otherQuery = getOtherQuery(query);
-      // otherQuery 不能是 {}，否则无法跳转
       if (Object.keys(otherQuery).length === 0) router.push(path);
       else router.push({ path, query: otherQuery });
 
       ElNotification.success({
-        title: `欢迎登录 ${serviceConfig.layout.name}`,
-        message: getTimeState(),
+        title: "登录成功",
+        message: `欢迎登录 ${serviceConfig.layout.name}`,
+        duration: 3000,
+      });
+    } catch (error: any) {
+      // 显示错误信息
+      ElNotification.error({
+        title: "登录失败",
+        message: error.msg || "用户名或密码错误",
         duration: 3000,
       });
     } finally {
@@ -157,10 +146,6 @@ const resetForm = () => {
         </el-button>
       </div>
     </el-form-item>
-
-    
-
-
   </el-form>
 </template>
 
