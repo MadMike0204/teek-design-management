@@ -98,19 +98,14 @@ const resetForm = () => {
 <template>
   <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" size="large" :class="ns.b()">
     <el-form-item prop="username">
-      <el-input
-        v-model="loginForm.username"
-        placeholder="用户名（任意）"
-        :prefix-icon="User"
-        @keydown.enter="login"
-      ></el-input>
+      <el-input v-model="loginForm.username" placeholder="用户名" :prefix-icon="User" @keydown.enter="login"></el-input>
     </el-form-item>
 
     <el-form-item prop="password">
       <el-input
         type="password"
         v-model="loginForm.password"
-        placeholder="密码（任意）"
+        placeholder="密码"
         show-password
         autocomplete="new-password"
         :prefix-icon="Lock"
