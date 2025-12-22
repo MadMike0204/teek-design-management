@@ -19,7 +19,17 @@ export const http = createRequest({
     onRequest: (config: RequestConfig) => {
       // 添加认证 token
       const userStore = useUserStore();
-      if (userStore.accessToken) config.headers.Authorization = userStore.accessToken;
+      // 优先从localStorage读取adminToken
+      const adminToken = localStorage.getItem("adminToken");
+      if (adminToken) {
+        config.headers.Authorization = adminToken;
+        // 更新store中的token
+        if (adminToken !== userStore.accessToken) {
+          userStore.setToken(adminToken);
+        }
+      } else if (userStore.accessToken) {
+        config.headers.Authorization = userStore.accessToken;
+      }
       return config;
     },
   },
