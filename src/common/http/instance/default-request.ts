@@ -19,7 +19,7 @@ export const http = createRequest({
     onRequest: (config: RequestConfig) => {
       // 添加认证 token
       const userStore = useUserStore();
-      if (userStore.accessToken) config.headers.token = userStore.accessToken;
+      if (userStore.accessToken) config.headers.Authorization = userStore.accessToken;
       return config;
     },
   },

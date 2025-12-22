@@ -1,14 +1,58 @@
 <script setup lang="ts" name="Dashboard">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { User, DocumentAdd, UserFilled } from "@element-plus/icons-vue";
+import { http } from "@/common/http/instance/default-request";
+
+// 定义仪表盘数据接口
+interface DashboardSummary {
+  totalUsers: number;
+  totalContents: number;
+  todayUsers: number;
+  todayContents: number;
+}
 
 // 统计数据
 const statistics = ref([
-  { title: "用户总量", value: 906, icon: User },
-  { title: "内容发布数", value: 1322, icon: DocumentAdd },
-  { title: "今日新增用户", value: 26, icon: User },
-  { title: "今日新增内容", value: 67, icon: DocumentAdd },
+  { title: "用户总量", value: 0, icon: User },
+  { title: "内容发布数", value: 0, icon: DocumentAdd },
+  { title: "今日新增用户", value: 0, icon: User },
+  { title: "今日新增内容", value: 0, icon: DocumentAdd },
 ]);
+
+// 加载状态
+const loading = ref(true);
+
+// 定义API响应接口
+interface ApiResponse<T> {
+  code: number;
+  msg: string;
+  data: T;
+}
+
+// 获取仪表盘数据
+const fetchDashboardData = async () => {
+  try {
+    loading.value = true;
+    const res = await http.get<ApiResponse<DashboardSummary>>("http://117.72.201.153:1202/admin/dashboard/summary");
+
+    // 更新统计数据
+    statistics.value = [
+      { title: "用户总量", value: res.data.totalUsers, icon: User },
+      { title: "内容发布数", value: res.data.totalContents, icon: DocumentAdd },
+      { title: "今日新增用户", value: res.data.todayUsers, icon: User },
+      { title: "今日新增内容", value: res.data.todayContents, icon: DocumentAdd },
+    ];
+  } catch (error) {
+    console.error("获取仪表盘数据失败:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchDashboardData();
+});
 
 // 最近新增用户
 const recentUsers = ref([
