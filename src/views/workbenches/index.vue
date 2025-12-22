@@ -1,53 +1,139 @@
-<script setup lang="ts" name="Home"></script>
+<script setup lang="ts" name="Dashboard">
+import { ref } from "vue";
+import { User, DocumentAdd, UserFilled } from "@element-plus/icons-vue";
+
+// 统计数据
+const statistics = ref([
+  { title: "用户总量", value: 906, icon: User },
+  { title: "内容发布数", value: 1322, icon: DocumentAdd },
+  { title: "今日新增用户", value: 26, icon: User },
+  { title: "今日新增内容", value: 67, icon: DocumentAdd },
+]);
+
+// 最近新增用户
+const recentUsers = ref([
+  { avatar: "", nickname: "软脚虾", gender: "男", region: "北京", registerTime: "2025.12.16 17:23" },
+  { avatar: "", nickname: "超级无敌暴烈", gender: "女", region: "深圳", registerTime: "2025.12.16 13:12" },
+  { avatar: "", nickname: "无敌石头大王", gender: "女", region: "上海", registerTime: "2025.12.15 11:00" },
+  { avatar: "", nickname: "可以和密码", gender: "男", region: "长沙", registerTime: "2025.12.14 9:23" },
+  { avatar: "", nickname: "Uzi", gender: "女", region: "浙江", registerTime: "2025.12.13 9:23" },
+]);
+
+// 最近新增内容
+const recentContent = ref([
+  { title: "在大型赛事中如何硬起来", creator: "软脚虾", publishTime: "2025.12.17 17:23" },
+  { title: "红温了", creator: "超级无敌暴烈", publishTime: "2025.12.17 13:12" },
+  { title: "基于全球赛事伟大战略开发的...", creator: "无敌石头大王", publishTime: "2025.12.16 11:00" },
+  { title: "遥遥领先", creator: "可以和密码", publishTime: "2025.12.16 9:23" },
+  { title: "操你", creator: "Uzi", publishTime: "2025.12.15 9:23" },
+]);
+</script>
 
 <template>
-  <div class="tk-card-minimal">
-    <el-descriptions class="margin-top" :column="1" border>
-      <el-descriptions-item label="完整版 GitHub 地址">
-        <el-link type="primary" href="https://github.com/Kele-Bingtang/teek-design-vue3" target="_blank">
-          https://github.com/Kele-Bingtang/teek-design-vue3
-        </el-link>
-      </el-descriptions-item>
-      <el-descriptions-item label="精简版 GitHub 地址">
-        <el-link type="primary" href="https://github.com/Kele-Bingtang/teek-design-vue3-template" target="_blank">
-          https://github.com/Kele-Bingtang/teek-design-vue3-template
-        </el-link>
-      </el-descriptions-item>
-      <el-descriptions-item label="精简版 monorepo 架构 GitHub 地址（v1.5.1）">
-        <el-link
-          type="primary"
-          href="https://github.com/Kele-Bingtang/teek-design-vue3-template/tree/monorepo"
-          target="_blank"
-        >
-          https://github.com/Kele-Bingtang/teek-design-vue3-template/tree/monorepo
-        </el-link>
-      </el-descriptions-item>
-      <el-descriptions-item label="使用文档">
-        <el-link type="primary" href="https://vue3-design-docs.teek.top/" target="_blank">
-          https://vue3-design-docs.teek.top/
-        </el-link>
-      </el-descriptions-item>
-      <el-descriptions-item label="效果预览地址">
-        <el-link type="primary" href="https://vue3-design.teek.top/" target="_blank">
-          https://vue3-design.teek.top/
-        </el-link>
-      </el-descriptions-item>
+  <div class="dashboard-container">
+    <!-- 统计卡片 -->
+    <el-row :gutter="20">
+      <el-col :span="6" v-for="(item, index) in statistics" :key="index">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-item">
+            <div class="stat-value">{{ item.value }}</div>
+            <div class="stat-title">{{ item.title }}</div>
+            <div class="stat-icon">
+              <el-icon :size="32"><component :is="item.icon" /></el-icon>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-      <el-descriptions-item label="Vue2 完整版 Github 地址">
-        <el-link type="primary" href="https://github.com/Kele-Bingtang/teek-design-vue2" target="_blank">
-          https://github.com/Kele-Bingtang/teek-design-vue2
-        </el-link>
-      </el-descriptions-item>
-      <el-descriptions-item label="Vue2 精简版 Github 地址">
-        <el-link type="primary" href="https://github.com/Kele-Bingtang/teek-design-vue2-template" target="_blank">
-          https://github.com/Kele-Bingtang/teek-design-vue3-template
-        </el-link>
-      </el-descriptions-item>
-      <el-descriptions-item label="Vue2 效果预览地址">
-        <el-link type="primary" href="https://vue2-design.teek.top/" target="_blank">
-          https://vue2-design.teek.top/
-        </el-link>
-      </el-descriptions-item>
-    </el-descriptions>
+    <!-- 表格区域 -->
+    <el-row :gutter="20" style="margin-top: 20px">
+      <!-- 最近新增用户 -->
+      <el-col :span="12">
+        <el-card shadow="hover" class="table-card">
+          <template #header>
+            <div class="card-header">
+              <span>最近新增用户</span>
+            </div>
+          </template>
+          <el-table :data="recentUsers" stripe border style="width: 100%">
+            <el-table-column prop="avatar" label="头像" width="80">
+              <template #default>
+                <el-avatar :size="36"><UserFilled /></el-avatar>
+              </template>
+            </el-table-column>
+            <el-table-column prop="nickname" label="昵称" />
+            <el-table-column prop="gender" label="性别" width="80" />
+            <el-table-column prop="region" label="地区" />
+            <el-table-column prop="registerTime" label="注册时间" />
+          </el-table>
+        </el-card>
+      </el-col>
+
+      <!-- 最近新增内容 -->
+      <el-col :span="12">
+        <el-card shadow="hover" class="table-card">
+          <template #header>
+            <div class="card-header">
+              <span>最近新增内容</span>
+            </div>
+          </template>
+          <el-table :data="recentContent" stripe border style="width: 100%">
+            <el-table-column prop="title" label="标题" />
+            <el-table-column prop="creator" label="创建者昵称" />
+            <el-table-column prop="publishTime" label="发布时间" />
+          </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
+
+<style scoped>
+.dashboard-container {
+  padding: 20px;
+}
+
+.stat-card {
+  height: 120px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 20px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333333;
+}
+
+.stat-title {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666666;
+}
+
+.stat-icon {
+  color: #409eff;
+  opacity: 0.2;
+}
+
+.table-card {
+  height: 100%;
+}
+
+.card-header {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333333;
+}
+
+:deep(.el-table) {
+  font-size: 14px;
+}
+</style>

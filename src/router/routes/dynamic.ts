@@ -38,7 +38,7 @@
  * @param meta.query ==> 查询参数，Teek 不做任何处理，自行取出处理
  */
 
-import { Compass } from "@element-plus/icons-vue";
+import { Compass, Document, User, Setting } from "@element-plus/icons-vue";
 import { HOME_URL, HOME_NAME } from "@/common/config";
 
 /**
@@ -70,7 +70,7 @@ export const dynamicRoutes: RouterConfigRaw[] = [
     name: HOME_NAME,
     component: "/workbenches/index",
     meta: {
-      title: "工作台",
+      title: "仪表盘",
       icon: Compass,
       isAffix: true,
       tagText: "Welcome",
@@ -78,12 +78,32 @@ export const dynamicRoutes: RouterConfigRaw[] = [
     },
   },
   {
-    path: "/test",
-    name: "Test",
-    component: "/test/index",
+    path: "/content",
+    name: "Content",
+    component: "/content/index",
     meta: {
-      title: "Test页面",
-      icon: "CoffeeCup",
+      title: "内容管理",
+      icon: Document,
+      isKeepAlive: true,
+    },
+  },
+  {
+    path: "/user",
+    name: "User",
+    component: "/user/index",
+    meta: {
+      title: "用户管理",
+      icon: User,
+      isKeepAlive: true,
+    },
+  },
+  {
+    path: "/admin",
+    name: "Admin",
+    component: "/admin/index",
+    meta: {
+      title: "管理员管理",
+      icon: Setting,
       isKeepAlive: true,
     },
   },
