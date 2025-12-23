@@ -58,7 +58,7 @@ export const UserService = {
 
   // 获取管理员列表
   getAdminList(params: any) {
-    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/admin-user/list", params, {
+    return http.get<httpNs.Response<any>>("http://117.72.201.153:1202/admin/admin-user/list", params, {
       baseURL: "",
     });
   },
@@ -115,7 +115,7 @@ export const UserService = {
 
   // 小程序用户分页搜索列表
   getClientUserList(params: any) {
-    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/client-user/list", params, {
+    return http.get<httpNs.Response<any>>("http://117.72.201.153:1202/admin/client-user/list", params, {
       baseURL: "",
     });
   },
