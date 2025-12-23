@@ -1,73 +1,118 @@
 <template>
-  <div :class="ns.b()">
+  <div :class="ns.b()" class="admin-management-container">
     <div :class="ns.e('header')" class="flx-align-center">
       <h2>{{ "管理员管理" }}</h2>
-      <el-button type="primary" @click="handleAddDefaultAdmin" style="margin-left: 20px">创建初始管理员</el-button>
+      <el-button type="primary" @click="handleAddDefaultAdmin" style="margin-left: 20px">
+        <el-icon><Plus /></el-icon>
+        创建初始管理员
+      </el-button>
     </div>
     <!-- 搜索和筛选区域 -->
-    <div :class="ns.e('search-filter')" class="flx-align-center">
-      <el-input v-model="searchForm.username" placeholder="用户名" style="width: 150px; margin-right: 10px" />
-      <el-input v-model="searchForm.nickname" placeholder="昵称" style="width: 150px; margin-right: 10px" />
-      <el-select v-model="searchForm.status" placeholder="管理员状态" style="width: 150px; margin-right: 10px">
-        <el-option label="未指定" value="" />
-        <el-option label="正常" value="normal" />
-        <el-option label="已禁用" value="disabled" />
-      </el-select>
-      <el-select v-model="searchForm.isDeleted" placeholder="删除状态" style="width: 150px; margin-right: 10px">
-        <el-option label="未指定" value="" />
-        <el-option label="正常" :value="0" />
-        <el-option label="已删除" :value="1" />
-      </el-select>
-      <el-button type="primary" @click="handleSearch">查询</el-button>
-      <el-button @click="resetForm">重置</el-button>
-    </div>
+    <el-card shadow="hover" class="filter-card">
+      <div :class="ns.e('search-filter')" class="flx-align-center filter-content">
+        <el-input v-model="searchForm.username" placeholder="用户名" style="width: 200px; margin-right: 15px" clearable>
+          <template #prefix>
+            <el-icon><User /></el-icon>
+          </template>
+        </el-input>
+        <el-input v-model="searchForm.nickname" placeholder="昵称" style="width: 200px; margin-right: 15px" clearable>
+          <template #prefix>
+            <el-icon><User /></el-icon>
+          </template>
+        </el-input>
+        <el-select v-model="searchForm.status" placeholder="管理员状态" style="width: 150px; margin-right: 15px">
+          <template #prefix>
+            <el-icon><SwitchButton /></el-icon>
+          </template>
+          <el-option label="未指定" value="" />
+          <el-option label="正常" value="normal" />
+          <el-option label="已禁用" value="disabled" />
+        </el-select>
+        <el-select v-model="searchForm.isDeleted" placeholder="删除状态" style="width: 150px; margin-right: 15px">
+          <template #prefix>
+            <el-icon><DeleteIcon /></el-icon>
+          </template>
+          <el-option label="未指定" value="" />
+          <el-option label="正常" :value="0" />
+          <el-option label="已删除" :value="1" />
+        </el-select>
+        <el-button type="primary" style="margin-right: 10px" @click="handleSearch">
+          <el-icon><Search /></el-icon>
+          查询
+        </el-button>
+        <el-button @click="resetForm">
+          <el-icon><RefreshRight /></el-icon>
+          重置
+        </el-button>
+      </div>
+    </el-card>
 
     <!-- 表格区域 -->
-    <el-table :data="adminList" style="width: 100%">
-      <el-table-column prop="id" label="ID" width="120" />
-      <el-table-column prop="username" label="用户名" />
-      <el-table-column prop="nickname" label="昵称" />
-      <el-table-column prop="avatar" label="头像" width="80">
-        <template #default="scope">
-          <el-avatar :size="32" :src="scope.row.avatar || ''" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="phone" label="手机号" width="150" />
-      <el-table-column prop="status" label="管理员状态" width="120">
-        <template #default="scope">
-          <el-tag :type="scope.row.status === 'normal' ? 'success' : 'danger'">
-            {{ scope.row.status === "normal" ? "正常" : "已禁用" }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="240">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="handleView(scope.row)">查看详情</el-button>
-          <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button
-            :type="scope.row.status === 'normal' ? 'warning' : 'success'"
-            size="small"
-            @click="handleToggleStatus(scope.row)"
-          >
-            {{ scope.row.status === "normal" ? "禁用" : "启用" }}
-          </el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <el-card shadow="hover" class="table-card" style="margin-top: 20px">
+      <el-table
+        :data="adminList"
+        style="width: 100%"
+        stripe
+        border
+        v-loading="loading"
+        :highlight-current-row="true"
+        @row-hover="handleRowHover"
+      >
+        <el-table-column prop="id" label="ID" width="120" />
+        <el-table-column prop="username" label="用户名" />
+        <el-table-column prop="nickname" label="昵称" />
+        <el-table-column prop="avatar" label="头像" width="100">
+          <template #default="scope">
+            <el-avatar :size="40" :src="scope.row.avatar || ''" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="phone" label="手机号" width="150" />
+        <el-table-column prop="status" label="管理员状态" width="120">
+          <template #default="scope">
+            <el-tag :type="scope.row.status === 'normal' ? 'success' : 'danger'">
+              {{ scope.row.status === "normal" ? "正常" : "已禁用" }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="350">
+          <template #default="scope">
+            <el-link type="primary" style="margin-right: 15px" @click="handleView(scope.row)">
+              <el-icon><View /></el-icon>
+              查看详情
+            </el-link>
+            <el-link type="warning" style="margin-right: 15px" @click="handleEdit(scope.row)">
+              <el-icon><Edit /></el-icon>
+              编辑
+            </el-link>
+            <el-link
+              :type="scope.row.status === 'normal' ? 'warning' : 'success'"
+              style="margin-right: 15px"
+              @click="handleToggleStatus(scope.row)"
+            >
+              <el-icon><SwitchButton /></el-icon>
+              {{ scope.row.status === "normal" ? "禁用" : "启用" }}
+            </el-link>
+            <el-link type="danger" @click="handleDelete(scope.row)">
+              <el-icon><DeleteIcon /></el-icon>
+              删除
+            </el-link>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <!-- 分页区域 -->
-    <div class="pagination">
-      <el-pagination
-        v-model:current-page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="pagination.total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+      <!-- 分页区域 -->
+      <div class="pagination-container" style="margin-top: 20px; text-align: center">
+        <el-pagination
+          v-model:current-page="pagination.page"
+          v-model:page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="pagination.total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </el-card>
 
     <!-- 编辑对话框 -->
     <el-dialog v-model="dialogVisible" title="编辑管理员" width="500px">
@@ -114,7 +159,7 @@
     <el-dialog v-model="banDialogVisible" title="禁用管理员" width="500px">
       <el-form>
         <el-form-item label="封禁原因" required>
-          <el-input v-model="banReason" type="textarea" rows="4" placeholder="请输入封禁原因" />
+          <el-input v-model="banReason" type="textarea" :rows="4" placeholder="请输入封禁原因" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -132,6 +177,16 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { UserService } from "@/common/api/user";
 import { useNamespace } from "@/composables";
+import {
+  User,
+  Edit,
+  View,
+  SwitchButton,
+  Delete as DeleteIcon,
+  Search,
+  RefreshRight,
+  Plus,
+} from "@element-plus/icons-vue";
 
 const ns = useNamespace("admin-management");
 
@@ -152,6 +207,8 @@ const pagination = reactive({
 
 // 管理员列表
 const adminList = ref([]);
+// 加载状态
+const loading = ref(false);
 
 // 对话框
 const dialogVisible = ref(false);
@@ -185,11 +242,11 @@ const adminDetail = reactive({
 const handleView = async (row: any) => {
   try {
     const res = await UserService.getAdminDetail(row.id);
-    if (res.code === 0) {
-      Object.assign(adminDetail, res.data);
+    if ((res as any).code === 0) {
+      Object.assign(adminDetail, (res as any).data);
       detailVisible.value = true;
     } else {
-      ElMessage.error(res.msg || "获取管理员详情失败");
+      ElMessage.error((res as any).msg || "获取管理员详情失败");
     }
   } catch (error) {
     ElMessage.error("获取管理员详情失败");
@@ -205,6 +262,7 @@ const sortParams = reactive({
 
 // 获取管理员列表
 const getAdminList = async () => {
+  loading.value = true;
   try {
     const params = {
       page: pagination.page,
@@ -215,11 +273,13 @@ const getAdminList = async () => {
       ...sortParams,
     };
     const res = await UserService.getAdminList(params);
-    adminList.value = res.data.list;
-    pagination.total = res.data.total;
+    adminList.value = (res as any).data.list;
+    pagination.total = (res as any).data.total;
   } catch (error) {
     ElMessage.error("获取管理员列表失败");
     console.error("获取管理员列表失败:", error);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -251,6 +311,11 @@ const handleCurrentChange = (current: number) => {
   getAdminList();
 };
 
+// 处理表格行悬停
+const handleRowHover = (row: any, column: any, event: any) => {
+  // 可以在这里添加额外的悬停逻辑
+};
+
 // 编辑
 const handleEdit = (row: any) => {
   dialogVisible.value = true;
@@ -280,12 +345,12 @@ const doToggleStatus = async (status: number) => {
     };
 
     const res = await UserService.changeAdminStatus(params);
-    if (res.code === 0) {
+    if ((res as any).code === 0) {
       ElMessage.success("状态更新成功");
       getAdminList();
       banDialogVisible.value = false;
     } else {
-      ElMessage.error(res.msg || "状态更新失败");
+      ElMessage.error((res as any).msg || "状态更新失败");
     }
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || "状态更新失败");
@@ -309,11 +374,11 @@ const handleDelete = async (row: any) => {
 const handleAddDefaultAdmin = async () => {
   try {
     const res = await UserService.addDefaultAdmin();
-    if (res.code === 0) {
+    if ((res as any).code === 0) {
       ElMessage.success("初始管理员创建成功，默认账号：admin，密码：123456+六位随机数");
       getAdminList();
     } else {
-      ElMessage.error(res.msg || "初始管理员创建失败");
+      ElMessage.error((res as any).msg || "初始管理员创建失败");
     }
   } catch (error) {
     ElMessage.error("初始管理员创建失败");
@@ -339,12 +404,12 @@ const handleSubmit = async () => {
     }
 
     const res = await UserService.updateAdmin(formData);
-    if (res.code === 0) {
+    if ((res as any).code === 0) {
       ElMessage.success("编辑成功");
       dialogVisible.value = false;
       getAdminList();
     } else {
-      ElMessage.error(res.msg || "编辑失败");
+      ElMessage.error((res as any).msg || "编辑失败");
     }
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || "编辑失败");
@@ -359,7 +424,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-management {
+.admin-management-container {
   padding: 20px;
 }
 
@@ -367,8 +432,38 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.pagination {
+.filter-card,
+.table-card {
+  height: 100%;
+}
+
+.filter-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   margin-top: 20px;
-  text-align: right;
+}
+
+:deep(.el-table) {
+  font-size: 14px;
+}
+
+:deep(.el-table__row) {
+  transition: all 0.3s ease;
+}
+
+:deep(.el-table__row:hover) {
+  background-color: #f0f9ff !important;
+  box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+}
+
+:deep(.el-table__current-row) {
+  background-color: #e6f7ff !important;
 }
 </style>

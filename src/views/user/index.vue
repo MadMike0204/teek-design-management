@@ -2,6 +2,17 @@
 import { ref, reactive, onMounted } from "vue";
 import { UserService } from "@/common/api/user";
 import { ElMessage } from "element-plus";
+import {
+  User,
+  SwitchButton,
+  Delete as DeleteIcon,
+  Sort,
+  ArrowDown,
+  Search,
+  RefreshRight,
+  Edit,
+  View,
+} from "@element-plus/icons-vue";
 
 // 筛选条件
 const filterForm = ref({
@@ -51,11 +62,11 @@ const getUserList = async () => {
     };
 
     const res = await UserService.getClientUserList(params);
-    if (res.code === 0) {
-      userList.value = res.data.list;
-      pagination.value.total = res.data.total;
+    if ((res as any).code === 0) {
+      userList.value = (res as any).data.list;
+      pagination.value.total = (res as any).data.total;
     } else {
-      ElMessage.error(res.msg || "获取用户列表失败");
+      ElMessage.error((res as any).msg || "获取用户列表失败");
     }
   } catch (error) {
     console.error("获取用户列表失败:", error);
@@ -70,13 +81,13 @@ const handleView = async (row: any) => {
   // 打开弹窗前先获取最新数据
   try {
     const res = await UserService.getClientUserDetail(row.id);
-    if (res.code === 0) {
+    if ((res as any).code === 0) {
       // 复制数据到当前查看的用户
-      Object.assign(currentUser, res.data);
+      Object.assign(currentUser, (res as any).data);
       // 打开弹窗
       dialogVisible.value = true;
     } else {
-      ElMessage.error(res.msg || "获取用户详情失败");
+      ElMessage.error((res as any).msg || "获取用户详情失败");
     }
   } catch (error) {
     console.error("获取用户详情失败:", error);
@@ -112,13 +123,13 @@ const saveUser = async () => {
     };
 
     const res = await UserService.updateClientUser(params);
-    if (res.code === 0) {
+    if ((res as any).code === 0) {
       ElMessage.success("用户信息修改成功");
       editDialogVisible.value = false;
       // 刷新用户列表
       getUserList();
     } else {
-      ElMessage.error(res.msg || "用户信息修改失败");
+      ElMessage.error((res as any).msg || "用户信息修改失败");
     }
   } catch (error) {
     console.error("修改用户信息失败:", error);
@@ -157,6 +168,11 @@ const handleSizeChange = (val: number) => {
   getUserList();
 };
 
+// 处理表格行悬停
+const handleRowHover = (row: any, column: any, event: any) => {
+  // 可以在这里添加额外的悬停逻辑
+};
+
 // 处理用户状态变更
 const handleStatusChange = async (row: any) => {
   try {
@@ -168,13 +184,13 @@ const handleStatusChange = async (row: any) => {
     };
 
     const res = await UserService.changeClientUserStatus(params);
-    if (res.code === 0) {
+    if ((res as any).code === 0) {
       row.status = newStatus;
       ElMessage.success("操作成功");
     } else {
       // 恢复原状态
       row.status = row.status === 1 ? 0 : 1;
-      ElMessage.error(res.msg || "操作失败");
+      ElMessage.error((res as any).msg || "操作失败");
     }
   } catch (error) {
     console.error("更新用户状态失败:", error);
@@ -194,13 +210,13 @@ const handleDelete = async (row: any) => {
     };
 
     const res = await UserService.changeClientUserDeleted(params);
-    if (res.code === 0) {
+    if ((res as any).code === 0) {
       row.isDeleted = newDeleted;
       ElMessage.success(newDeleted === 1 ? "删除成功" : "恢复成功");
       // 刷新列表
       getUserList();
     } else {
-      ElMessage.error(res.msg || "操作失败");
+      ElMessage.error((res as any).msg || "操作失败");
     }
   } catch (error) {
     console.error("操作失败:", error);
@@ -219,31 +235,61 @@ onMounted(() => {
     <!-- 筛选和操作区域 -->
     <el-card shadow="hover" class="filter-card">
       <div class="filter-content">
-        <el-input v-model="filterForm.name" placeholder="用户名" style="width: 200px; margin-right: 15px" clearable />
+        <el-input v-model="filterForm.name" placeholder="用户名" style="width: 200px; margin-right: 15px" clearable>
+          <template #prefix>
+            <el-icon><User /></el-icon>
+          </template>
+        </el-input>
         <el-select v-model="filterForm.status" placeholder="用户状态" style="width: 150px; margin-right: 15px">
+          <template #prefix>
+            <el-icon><SwitchButton /></el-icon>
+          </template>
           <el-option label="启用" value="1" />
           <el-option label="禁用" value="0" />
         </el-select>
         <el-select v-model="filterForm.isDeleted" placeholder="删除状态" style="width: 150px; margin-right: 15px">
+          <template #prefix>
+            <el-icon><DeleteIcon /></el-icon>
+          </template>
           <el-option label="未删除" value="0" />
           <el-option label="已删除" value="1" />
         </el-select>
         <el-select v-model="filterForm.sortBy" placeholder="排序字段" style="width: 150px; margin-right: 15px">
+          <template #prefix>
+            <el-icon><Sort /></el-icon>
+          </template>
           <el-option label="创建时间" value="create_time" />
           <el-option label="更新时间" value="update_time" />
         </el-select>
         <el-select v-model="filterForm.sortOrder" placeholder="排序方向" style="width: 100px; margin-right: 15px">
+          <template #prefix>
+            <el-icon><ArrowDown /></el-icon>
+          </template>
           <el-option label="升序" value="asc" />
           <el-option label="降序" value="desc" />
         </el-select>
-        <el-button type="primary" style="margin-right: 10px" @click="handleSearch">查询</el-button>
-        <el-button @click="resetFilter">重置</el-button>
+        <el-button type="primary" style="margin-right: 10px" @click="handleSearch">
+          <el-icon><Search /></el-icon>
+          查询
+        </el-button>
+        <el-button @click="resetFilter">
+          <el-icon><RefreshRight /></el-icon>
+          重置
+        </el-button>
       </div>
     </el-card>
 
     <!-- 用户表格 -->
     <el-card shadow="hover" class="table-card" style="margin-top: 20px">
-      <el-table :data="userList" stripe border style="width: 100%" v-loading="loading">
+      <el-table
+        :data="userList"
+        stripe
+        border
+        style="width: 100%"
+        v-loading="loading"
+        :highlight-current-row="true"
+        @row-hover="handleRowHover"
+      >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="openid" label="用户标识" width="200" />
         <el-table-column prop="name" label="用户名" width="120" />
@@ -270,12 +316,19 @@ onMounted(() => {
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="250">
+        <el-table-column label="操作" width="300">
           <template #default="scope">
-            <el-link type="primary" style="margin-right: 10px" @click="handleView(scope.row)">查看</el-link>
-            <el-link type="warning" style="margin-right: 10px" @click="handleEdit(scope.row)">编辑</el-link>
+            <el-link type="primary" style="margin-right: 15px" @click="handleView(scope.row)">
+              <el-icon><View /></el-icon>
+              查看
+            </el-link>
+            <el-link type="warning" style="margin-right: 15px" @click="handleEdit(scope.row)">
+              <el-icon><Edit /></el-icon>
+              编辑
+            </el-link>
             <el-link :type="scope.row.isDeleted === 1 ? 'success' : 'danger'" @click="handleDelete(scope.row)">
-              {{ scope.row.isDeleted === 1 ? "恢复" : "删除" }}
+              <el-icon><DeleteIcon /></el-icon>
+              删除
             </el-link>
           </template>
         </el-table-column>
@@ -364,6 +417,19 @@ onMounted(() => {
 
 :deep(.el-table) {
   font-size: 14px;
+}
+
+:deep(.el-table__row) {
+  transition: all 0.3s ease;
+}
+
+:deep(.el-table__row:hover) {
+  background-color: #f0f9ff !important;
+  box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+}
+
+:deep(.el-table__current-row) {
+  background-color: #e6f7ff !important;
 }
 
 /* 详情弹窗样式 */
