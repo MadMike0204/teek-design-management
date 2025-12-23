@@ -18,6 +18,9 @@ export default {
     [GATEWAY_TIMEOUT_NAME]: "500",
     [HOME_NAME]: "工作台",
 
+    Content: "内容管理",
+    User: "用户管理",
+    Admin: "管理员管理",
     ErrorLog: "错误日志",
   },
   _tabNav: {

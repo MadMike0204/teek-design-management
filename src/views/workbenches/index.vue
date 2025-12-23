@@ -69,7 +69,7 @@ const recentContent = ref([
   { title: "红温了", creator: "超级无敌暴烈", publishTime: "2025.12.17 13:12" },
   { title: "基于全球赛事伟大战略开发的...", creator: "无敌石头大王", publishTime: "2025.12.16 11:00" },
   { title: "遥遥领先", creator: "可以和密码", publishTime: "2025.12.16 9:23" },
-  { title: "操你", creator: "Uzi", publishTime: "2025.12.15 9:23" },
+  { title: "你好", creator: "Uzi", publishTime: "2025.12.15 9:23" },
 ]);
 </script>
 

@@ -58,15 +58,14 @@ export const UserService = {
 
   // 获取管理员列表
   getAdminList(params: any) {
-    return http.get<httpNs.Response<any>>("http://117.72.201.153:1202/admin/admin-user/list", {
-      params,
+    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/admin-user/list", params, {
       baseURL: "",
     });
   },
 
   // 更新管理员信息
   updateAdmin(params: any) {
-    return http.put<httpNs.Response<any>>(`http://117.72.201.153:1202/admin/admin-user/update/${params.id}`, params, {
+    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/admin-user/update", params, {
       baseURL: "",
     });
   },
@@ -78,6 +77,24 @@ export const UserService = {
     });
   },
 
+  // 查看管理员详细信息
+  getAdminDetail(id: number) {
+    return http.get<httpNs.Response<any>>(`http://117.72.201.153:1202/admin/admin-user/detail/${id}`, {
+      baseURL: "",
+    });
+  },
+
+  // 一键创建初始管理员
+  addDefaultAdmin() {
+    return http.post<httpNs.Response<any>>(
+      "http://117.72.201.153:1202/admin/admin-user/add-default",
+      {},
+      {
+        baseURL: "",
+      }
+    );
+  },
+
   // 更新管理员状态
   updateAdminStatus(id: string, status: string) {
     return http.put<httpNs.Response<any>>(
@@ -87,5 +104,47 @@ export const UserService = {
         baseURL: "",
       }
     );
+  },
+
+  // 启用/禁用管理员
+  changeAdminStatus(params: any) {
+    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/admin-user/change-status", params, {
+      baseURL: "",
+    });
+  },
+
+  // 小程序用户分页搜索列表
+  getClientUserList(params: any) {
+    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/client-user/list", params, {
+      baseURL: "",
+    });
+  },
+
+  // 更改用户信息
+  updateClientUser(params: any) {
+    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/client-user/update", params, {
+      baseURL: "",
+    });
+  },
+
+  // 启用/禁用用户
+  changeClientUserStatus(params: any) {
+    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/client-user/change-status", params, {
+      baseURL: "",
+    });
+  },
+
+  // 删除/恢复用户
+  changeClientUserDeleted(params: any) {
+    return http.post<httpNs.Response<any>>("http://117.72.201.153:1202/admin/client-user/change-deleted", params, {
+      baseURL: "",
+    });
+  },
+
+  // 查看用户详细信息
+  getClientUserDetail(id: number) {
+    return http.get<httpNs.Response<any>>(`http://117.72.201.153:1202/admin/client-user/detail/${id}`, {
+      baseURL: "",
+    });
   },
 };
