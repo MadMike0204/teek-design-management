@@ -41,3 +41,29 @@ export function getTimeState() {
     }
     return "";
 }
+/**
+ * 格式化时间显示
+ * @param {string|number|Date|null|undefined} time 时间字符串、时间戳或Date对象
+ * @param {string} format 格式化模板，默认为 'YYYY-MM-DD HH:mm:ss'
+ * @returns {string} 格式化后的时间字符串
+ */
+export function formatDateTime(time, format = "YYYY-MM-DD HH:mm:ss") {
+    if (!time)
+        return "-";
+    const date = typeof time === "string" || typeof time === "number" ? new Date(time) : time;
+    if (isNaN(date.getTime()))
+        return "-";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+    const second = String(date.getSeconds()).padStart(2, "0");
+    return format
+        .replace("YYYY", String(year))
+        .replace("MM", month)
+        .replace("DD", day)
+        .replace("HH", hour)
+        .replace("mm", minute)
+        .replace("ss", second);
+}

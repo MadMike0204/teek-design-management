@@ -1,7 +1,8 @@
 <script setup lang="ts" name="UserManagement">
 import { ref, reactive, onMounted } from "vue";
-import { UserService } from "@/common/api/user";
+import { AdminUserService, ClientUserService } from "@/common/api/user";
 import { ElMessage } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
 import {
   User,
   SwitchButton,
@@ -45,6 +46,10 @@ const currentUser = reactive({
   status: 0,
   isDeleted: 0,
   createTime: "",
+  sex: "",
+  area: "",
+  signature: "",
+  update_time: "",
 });
 
 // 获取用户列表
@@ -54,14 +59,14 @@ const getUserList = async () => {
     const params = {
       page: pagination.value.currentPage,
       size: pagination.value.pageSize,
-      isDeleted: filterForm.value.isDeleted,
-      status: filterForm.value.status,
+      isDeleted: filterForm.value.isDeleted === null || filterForm.value.isDeleted === "" ? null : Number(filterForm.value.isDeleted),
+      status: filterForm.value.status === null || filterForm.value.status === "" ? null : Number(filterForm.value.status),
       name: filterForm.value.name || null,
       sortBy: filterForm.value.sortBy,
       sortOrder: filterForm.value.sortOrder,
     };
 
-    const res = await UserService.getClientUserList(params);
+    const res = await AdminUserService.getClientUserList(params);
     if ((res as any).code === 0) {
       userList.value = (res as any).data.list;
       pagination.value.total = (res as any).data.total;
@@ -78,12 +83,25 @@ const getUserList = async () => {
 
 // 处理查看详情
 const handleView = async (row: any) => {
-  // 打开弹窗前先获取最新数据
+  // 使用后台接口获取用户详细信息
   try {
-    const res = await UserService.getClientUserDetail(row.id);
-    if ((res as any).code === 0) {
+    const res = await AdminUserService.getClientUserDetail(row.id);
+    if ((res as any).code === 0 && (res as any).data) {
+      const userData = (res as any).data;
       // 复制数据到当前查看的用户
-      Object.assign(currentUser, (res as any).data);
+      Object.assign(currentUser, {
+        id: userData.id || row.id,
+        openid: userData.openid || row.openid,
+        name: userData.name || row.name,
+        avatar: userData.avatar || row.avatar,
+        status: userData.status,
+        isDeleted: userData.isDeleted,
+        createTime: userData.createTime || "",
+        sex: userData.sex || "未知",
+        area: userData.area || "未知",
+        signature: userData.signature || "",
+        update_time: userData.updateTime || "",
+      });
       // 打开弹窗
       dialogVisible.value = true;
     } else {
@@ -102,6 +120,21 @@ const editUser = reactive({
   name: "",
   avatar: "",
 });
+
+// 禁用用户弹窗相关
+const banDialogVisible = ref(false);
+const banFormRef = ref<FormInstance>();
+const banForm = reactive({
+  userId: 0,
+  userName: "",
+  banReason: "",
+});
+const banFormRules: FormRules = {
+  banReason: [
+    { required: true, message: "请输入禁用原因", trigger: "blur" },
+    { min: 1, max: 200, message: "禁用原因长度在 1 到 200 个字符", trigger: "blur" },
+  ],
+};
 
 // 处理编辑用户
 const handleEdit = (row: any) => {
@@ -122,7 +155,7 @@ const saveUser = async () => {
       avatar: editUser.avatar,
     };
 
-    const res = await UserService.updateClientUser(params);
+    const res = await AdminUserService.updateClientUser(params);
     if ((res as any).code === 0) {
       ElMessage.success("用户信息修改成功");
       editDialogVisible.value = false;
@@ -175,28 +208,83 @@ const handleRowHover = (row: any, column: any, event: any) => {
 
 // 处理用户状态变更
 const handleStatusChange = async (row: any) => {
+  // 由于 v-model 已经改变了 row.status，所以当前 row.status 是新状态
+  // 0=禁用, 1=启用
+  const newStatus = row.status;
+  const oldStatus = newStatus === 1 ? 0 : 1; // 旧状态是新状态的反值
+  
+  // 如果要禁用用户（新状态是0），先恢复开关状态，然后弹出弹窗
+  if (newStatus === 0) {
+    // 恢复开关状态到启用
+    row.status = 1;
+    // 打开禁用弹窗
+    banForm.userId = row.id;
+    banForm.userName = row.name;
+    banForm.banReason = "";
+    banDialogVisible.value = true;
+    return;
+  }
+  
+  // 如果是启用用户（新状态是1），直接调用 API
   try {
-    const newStatus = row.status === 1 ? 0 : 1;
     const params = {
       id: row.id,
       status: newStatus,
-      banReason: newStatus === 0 ? "管理员操作" : "",
+      banReason: "",
     };
 
-    const res = await UserService.changeClientUserStatus(params);
+    const res = await AdminUserService.changeClientUserStatus(params);
     if ((res as any).code === 0) {
-      row.status = newStatus;
       ElMessage.success("操作成功");
     } else {
       // 恢复原状态
-      row.status = row.status === 1 ? 0 : 1;
+      row.status = oldStatus;
       ElMessage.error((res as any).msg || "操作失败");
     }
   } catch (error) {
     console.error("更新用户状态失败:", error);
     // 恢复原状态
-    row.status = row.status === 1 ? 0 : 1;
+    row.status = oldStatus;
     ElMessage.error("操作失败");
+  }
+};
+
+// 确认禁用用户
+const confirmBanUser = async () => {
+  if (!banFormRef.value) return;
+  
+  await banFormRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        const params = {
+          id: banForm.userId,
+          status: 0,
+          banReason: banForm.banReason,
+        };
+
+        const res = await AdminUserService.changeClientUserStatus(params);
+        if ((res as any).code === 0) {
+          ElMessage.success("用户已禁用");
+          banDialogVisible.value = false;
+          // 刷新用户列表
+          getUserList();
+        } else {
+          ElMessage.error((res as any).msg || "禁用用户失败");
+        }
+      } catch (error) {
+        console.error("禁用用户失败:", error);
+        ElMessage.error("禁用用户失败");
+      }
+    }
+  });
+};
+
+// 取消禁用
+const cancelBan = () => {
+  banDialogVisible.value = false;
+  banForm.banReason = "";
+  if (banFormRef.value) {
+    banFormRef.value.resetFields();
   }
 };
 
@@ -206,10 +294,10 @@ const handleDelete = async (row: any) => {
     const newDeleted = row.isDeleted === 1 ? 0 : 1;
     const params = {
       id: row.id,
-      value: newDeleted,
+      isDeleted: newDeleted,
     };
 
-    const res = await UserService.changeClientUserDeleted(params);
+    const res = await AdminUserService.changeClientUserDeleted(params);
     if ((res as any).code === 0) {
       row.isDeleted = newDeleted;
       ElMessage.success(newDeleted === 1 ? "删除成功" : "恢复成功");
@@ -368,7 +456,11 @@ onMounted(() => {
         </div>
         <div class="detail-body">
           <el-descriptions :column="2" border>
+            <el-descriptions-item label="性别">{{ currentUser.sex || "未知" }}</el-descriptions-item>
+            <el-descriptions-item label="地区">{{ currentUser.area || "未知" }}</el-descriptions-item>
+            <el-descriptions-item label="个性签名" :span="2">{{ currentUser.signature || "无" }}</el-descriptions-item>
             <el-descriptions-item label="创建时间">{{ currentUser.createTime }}</el-descriptions-item>
+            <el-descriptions-item label="更新时间">{{ currentUser.update_time || "未知" }}</el-descriptions-item>
           </el-descriptions>
         </div>
       </div>
@@ -392,6 +484,35 @@ onMounted(() => {
       <template #footer>
         <el-button @click="editDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="saveUser">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 禁用用户弹窗 -->
+    <el-dialog v-model="banDialogVisible" title="禁用用户" width="500px">
+      <el-form
+        ref="banFormRef"
+        :model="banForm"
+        :rules="banFormRules"
+        label-position="top"
+        label-width="80px"
+      >
+        <el-form-item label="用户名">
+          <el-input v-model="banForm.userName" disabled />
+        </el-form-item>
+        <el-form-item label="禁用原因" prop="banReason">
+          <el-input
+            v-model="banForm.banReason"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入禁用原因（必填）"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="cancelBan">取消</el-button>
+        <el-button type="danger" @click="confirmBanUser">确认禁用</el-button>
       </template>
     </el-dialog>
   </div>

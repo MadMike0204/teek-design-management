@@ -1,6 +1,6 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import { UserService } from "@/common/api/user";
+import { AdminUserService } from "@/common/api/user";
 import { useNamespace } from "@/composables";
 import { User, Edit, View, SwitchButton, Delete as DeleteIcon, Search, RefreshRight, Plus, } from "@element-plus/icons-vue";
 const ns = useNamespace("admin-management");
@@ -50,7 +50,7 @@ const adminDetail = reactive({
 // 查看详情
 const handleView = async (row) => {
     try {
-        const res = await UserService.getAdminDetail(row.id);
+        const res = await AdminUserService.getAdminDetail(row.id);
         if (res.code === 0) {
             Object.assign(adminDetail, res.data);
             detailVisible.value = true;
@@ -81,7 +81,7 @@ const getAdminList = async () => {
             name: searchForm.username || searchForm.nickname,
             ...sortParams,
         };
-        const res = await UserService.getAdminList(params);
+        const res = await AdminUserService.getAdminList(params);
         adminList.value = res.data.list;
         pagination.total = res.data.total;
     }
@@ -147,7 +147,7 @@ const doToggleStatus = async (status) => {
             status,
             ...(status === 0 ? { banReason: banReason.value } : {}),
         };
-        const res = await UserService.changeAdminStatus(params);
+        const res = await AdminUserService.changeAdminStatus(params);
         if (res.code === 0) {
             ElMessage.success("状态更新成功");
             getAdminList();
@@ -165,7 +165,7 @@ const doToggleStatus = async (status) => {
 // 删除
 const handleDelete = async (row) => {
     try {
-        await UserService.deleteAdmin(row.id);
+        await AdminUserService.deleteAdmin(row.id);
         ElMessage.success("删除成功");
         getAdminList();
     }
@@ -177,7 +177,7 @@ const handleDelete = async (row) => {
 // 创建初始管理员
 const handleAddDefaultAdmin = async () => {
     try {
-        const res = await UserService.addDefaultAdmin();
+        const res = await AdminUserService.addDefaultAdmin();
         if (res.code === 0) {
             ElMessage.success("初始管理员创建成功，默认账号：admin，密码：123456+六位随机数");
             getAdminList();
@@ -206,7 +206,7 @@ const handleSubmit = async () => {
             ElMessage.error("手机号格式不正确");
             return;
         }
-        const res = await UserService.updateAdmin(formData);
+        const res = await AdminUserService.updateAdmin(formData);
         if (res.code === 0) {
             ElMessage.success("编辑成功");
             dialogVisible.value = false;

@@ -1,4 +1,4 @@
-import { UserService } from "@/common/api/user";
+import { AdminUserService } from "@/common/api/user";
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import { useRouteFn } from "@/composables";
@@ -16,7 +16,7 @@ export const useUserStore = defineStore("userStore", () => {
     const lockPassword = ref("");
     const login = async (loginParams) => {
         // 调用管理员登录接口
-        return await UserService.loginAdmin(loginParams).then(res => {
+        return await AdminUserService.loginAdmin(loginParams).then(res => {
             const adminToken = res.data;
             // 存储到localStorage
             localStorage.setItem("adminToken", adminToken);

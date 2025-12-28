@@ -1,5 +1,5 @@
 import { ref, reactive, onMounted } from "vue";
-import { UserService } from "@/common/api/user";
+import { AdminUserService, ClientUserService } from "@/common/api/user";
 import { ElMessage } from "element-plus";
 import { User, SwitchButton, Delete as DeleteIcon, Sort, ArrowDown, Search, RefreshRight, Edit, View, } from "@element-plus/icons-vue";
 // 筛选条件
@@ -44,7 +44,7 @@ const getUserList = async () => {
             sortBy: filterForm.value.sortBy,
             sortOrder: filterForm.value.sortOrder,
         };
-        const res = await UserService.getClientUserList(params);
+        const res = await AdminUserService.getClientUserList(params);
         if (res.code === 0) {
             userList.value = res.data.list;
             pagination.value.total = res.data.total;
@@ -63,17 +63,34 @@ const getUserList = async () => {
 };
 // 处理查看详情
 const handleView = async (row) => {
-    // 打开弹窗前先获取最新数据
+    // 打开弹窗前先获取最新数据，使用openid获取小程序用户信息
     try {
-        const res = await UserService.getClientUserDetail(row.id);
-        if (res.code === 0) {
-            // 复制数据到当前查看的用户
-            Object.assign(currentUser, res.data);
+        if (!row.openid) {
+            ElMessage.error("用户openid不存在");
+            return;
+        }
+        const res = await ClientUserService.getUserByOpenid(row.openid);
+        if (res.code === 0 && res.data) {
+            const userData = res.data;
+            // 复制数据到当前查看的用户，映射字段名
+            Object.assign(currentUser, {
+                id: userData.id || row.id,
+                openid: userData.openid || row.openid,
+                name: userData.name || row.name,
+                avatar: userData.avatar || row.avatar,
+                status: row.status,
+                isDeleted: row.isDeleted,
+                createTime: userData.create_time || row.createTime,
+                sex: userData.sex || "未知",
+                area: userData.area || "未知",
+                signature: userData.signature || "",
+                update_time: userData.update_time || "",
+            });
             // 打开弹窗
             dialogVisible.value = true;
         }
         else {
-            ElMessage.error(res.msg || "获取用户详情失败");
+            ElMessage.error(res.message || "获取用户详情失败");
         }
     }
     catch (error) {
@@ -105,7 +122,7 @@ const saveUser = async () => {
             name: editUser.name,
             avatar: editUser.avatar,
         };
-        const res = await UserService.updateClientUser(params);
+        const res = await AdminUserService.updateClientUser(params);
         if (res.code === 0) {
             ElMessage.success("用户信息修改成功");
             editDialogVisible.value = false;
@@ -161,7 +178,7 @@ const handleStatusChange = async (row) => {
             status: newStatus,
             banReason: newStatus === 0 ? "管理员操作" : "",
         };
-        const res = await UserService.changeClientUserStatus(params);
+        const res = await AdminUserService.changeClientUserStatus(params);
         if (res.code === 0) {
             row.status = newStatus;
             ElMessage.success("操作成功");
@@ -187,7 +204,7 @@ const handleDelete = async (row) => {
             id: row.id,
             value: newDeleted,
         };
-        const res = await UserService.changeClientUserDeleted(params);
+        const res = await AdminUserService.changeClientUserDeleted(params);
         if (res.code === 0) {
             row.isDeleted = newDeleted;
             ElMessage.success(newDeleted === 1 ? "删除成功" : "恢复成功");

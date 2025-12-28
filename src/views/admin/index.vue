@@ -69,8 +69,8 @@
         <el-table-column prop="phone" label="手机号" width="150" />
         <el-table-column prop="status" label="管理员状态" width="120">
           <template #default="scope">
-            <el-tag :type="scope.row.status === 'normal' ? 'success' : 'danger'">
-              {{ scope.row.status === "normal" ? "正常" : "已禁用" }}
+            <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
+              {{ scope.row.status === 1 ? "正常" : "已禁用" }}
             </el-tag>
           </template>
         </el-table-column>
@@ -85,12 +85,12 @@
               编辑
             </el-link>
             <el-link
-              :type="scope.row.status === 'normal' ? 'warning' : 'success'"
+              :type="scope.row.status === 1 ? 'warning' : 'success'"
               style="margin-right: 15px"
               @click="handleToggleStatus(scope.row)"
             >
               <el-icon><SwitchButton /></el-icon>
-              {{ scope.row.status === "normal" ? "禁用" : "启用" }}
+              {{ scope.row.status === 1 ? "禁用" : "启用" }}
             </el-link>
             <el-link type="danger" @click="handleDelete(scope.row)">
               <el-icon><DeleteIcon /></el-icon>
@@ -146,8 +146,8 @@
         <el-descriptions-item label="昵称">{{ adminDetail.nickname }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ adminDetail.phone }}</el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="adminDetail.status === 'normal' ? 'success' : 'danger'">
-            {{ adminDetail.status === "normal" ? "正常" : "已禁用" }}
+          <el-tag :type="adminDetail.status === 1 ? 'success' : 'danger'">
+            {{ adminDetail.status === 1 ? "正常" : "已禁用" }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="角色">{{ adminDetail.role }}</el-descriptions-item>
@@ -175,7 +175,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import { UserService } from "@/common/api/user";
+import { AdminUserService } from "@/common/api/user";
 import { useNamespace } from "@/composables";
 import {
   User,
@@ -232,7 +232,7 @@ const adminDetail = reactive({
   nickname: "",
   avatar: "",
   phone: "",
-  status: "",
+  status: 1,
   isDeleted: 0,
   role: 0,
   createdAt: "",
@@ -241,7 +241,7 @@ const adminDetail = reactive({
 // 查看详情
 const handleView = async (row: any) => {
   try {
-    const res = await UserService.getAdminDetail(row.id);
+    const res = await AdminUserService.getAdminDetail(row.id);
     if ((res as any).code === 0) {
       Object.assign(adminDetail, (res as any).data);
       detailVisible.value = true;
@@ -267,12 +267,13 @@ const getAdminList = async () => {
     const params = {
       page: pagination.page,
       size: pagination.pageSize,
-      isDeleted: searchForm.isDeleted,
-      status: searchForm.status,
-      name: searchForm.username || searchForm.nickname,
-      ...sortParams,
+      isDeleted: searchForm.isDeleted === "" ? null : Number(searchForm.isDeleted),
+      status: searchForm.status === "" ? null : searchForm.status === "normal" ? 1 : searchForm.status === "disabled" ? 0 : null,
+      name: searchForm.username || searchForm.nickname || null,
+      sortBy: sortParams.sortBy,
+      sortOrder: sortParams.sortOrder,
     };
-    const res = await UserService.getAdminList(params);
+    const res = await AdminUserService.getAdminList(params);
     adminList.value = (res as any).data.list;
     pagination.total = (res as any).data.total;
   } catch (error) {
@@ -325,7 +326,7 @@ const handleEdit = (row: any) => {
 // 切换状态
 const handleToggleStatus = (row: any) => {
   currentRow.value = row;
-  if (row.status === "normal") {
+  if (row.status === 1) {
     // 禁用操作需要输入封禁原因
     banReason.value = "";
     banDialogVisible.value = true;
@@ -344,7 +345,7 @@ const doToggleStatus = async (status: number) => {
       ...(status === 0 ? { banReason: banReason.value } : {}),
     };
 
-    const res = await UserService.changeAdminStatus(params);
+    const res = await AdminUserService.changeAdminStatus(params);
     if ((res as any).code === 0) {
       ElMessage.success("状态更新成功");
       getAdminList();
@@ -361,7 +362,7 @@ const doToggleStatus = async (status: number) => {
 // 删除
 const handleDelete = async (row: any) => {
   try {
-    await UserService.deleteAdmin(row.id);
+    await AdminUserService.deleteAdmin(row.id);
     ElMessage.success("删除成功");
     getAdminList();
   } catch (error) {
@@ -373,7 +374,7 @@ const handleDelete = async (row: any) => {
 // 创建初始管理员
 const handleAddDefaultAdmin = async () => {
   try {
-    const res = await UserService.addDefaultAdmin();
+    const res = await AdminUserService.addDefaultAdmin();
     if ((res as any).code === 0) {
       ElMessage.success("初始管理员创建成功，默认账号：admin，密码：123456+六位随机数");
       getAdminList();
@@ -403,7 +404,7 @@ const handleSubmit = async () => {
       return;
     }
 
-    const res = await UserService.updateAdmin(formData);
+    const res = await AdminUserService.updateAdmin(formData);
     if ((res as any).code === 0) {
       ElMessage.success("编辑成功");
       dialogVisible.value = false;
